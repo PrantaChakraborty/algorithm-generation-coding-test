@@ -44,3 +44,15 @@ class UserRegisterSerializer(serializers.Serializer):
         user = User.objects.create_user(email, password)
         user.save()
         return user
+
+
+class StaffRegisterSerializer(UserRegisterSerializer):
+    """
+    serializer for staff register
+    """
+    def create(self, validated_data):
+        email = validated_data.get('email')
+        password = validated_data.get('password1')
+        user = User.objects.create_staff(email, password)
+        user.save()
+        return user
