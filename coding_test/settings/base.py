@@ -121,12 +121,45 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # rest framework settings
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
-        'users.custom_renderer.CustomRenderer',
+        'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'users.exception_handler.custom_exception_handler'
 }
 
 # custom user model
 AUTH_USER_MODEL = 'users.User'
+
+# setting for logging
+LOGGING = {
+    'version': 1,
+    # The version number of our log
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{name} {levelname} {asctime} {module}  {message}',
+            'style': '{',
+        },
+    },
+    # app based file handler
+    'handlers': {
+        'user_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'users.log',
+            'formatter': 'verbose',
+
+        },
+    },
+
+    # app specific logger file
+    'loggers': {
+        'users': {
+            'handlers': ['user_file'],  # file variable is called in handler which has been defined above
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
