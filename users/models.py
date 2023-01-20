@@ -1,6 +1,13 @@
+import binascii
+import os
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.contrib.auth.base_user import BaseUserManager
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CustomUserManager(BaseUserManager):
@@ -14,6 +21,9 @@ class CustomUserManager(BaseUserManager):
         # create group based on user type
         user_group, created = Group.objects.get_or_create(name=extra_fields['user_type'])
         user.groups.add(user_group)
+        # create token for user
+        user_token = CustomToken.objects.create(user=user)
+        user_token.save()
         return user
 
     def create_user(self, email, password, **extra_fields):
@@ -70,3 +80,35 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+    def get_token(self):
+        try:
+            return self.auth_token.key
+        except Exception as e:
+            logger.exception(f"No relation exists {e}")
+            return None
+
+
+
+class CustomToken(models.Model):
+    """
+    The custom authorization token model.
+    """
+    key = models.CharField(max_length=40, primary_key=True)
+    user = models.OneToOneField(
+        User, related_name='auth_token',
+        on_delete=models.CASCADE
+    )
+    created = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_key(cls):
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    def __str__(self):
+        return self.key
