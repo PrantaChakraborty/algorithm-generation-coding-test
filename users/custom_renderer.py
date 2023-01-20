@@ -22,7 +22,11 @@ class CustomRenderer(JSONRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         if 'ErrorDetail' in str(data):
-            response = json.dumps({'success': False, 'error': data['detail']})
+            if data['detail'] in str(data):
+                response = json.dumps({'success': False, 'error': data['detail']})
+            else:
+                # for non field errors
+                response = json.dumps({'success': False, 'error': data['non_field_errors'][0]})
         else:
             response = json.dumps({'success': True, 'data': data})
         return response
