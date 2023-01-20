@@ -21,7 +21,7 @@ class CustomUserManager(BaseUserManager):
         to create general user
         """
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('user_type', 'GENERAL')
+        extra_fields.setdefault('user_type', 'General')
         return self._create_user(email, password, **extra_fields)
 
     def create_staff(self, email, password, **extra_fields):
@@ -30,7 +30,7 @@ class CustomUserManager(BaseUserManager):
         """
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('user_type', 'STAFF')
+        extra_fields.setdefault('user_type', 'Staff')
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email,  password, **extra_fields):
@@ -40,7 +40,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('user_type', 'ADMIN')
+        extra_fields.setdefault('user_type', 'Admin')
         return self._create_user(email, password, **extra_fields)
 
 
@@ -49,9 +49,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     custom user model
     """
     USER_TYPE = (
-        ('ADMIN', 'admin'),
-        ('STAFF', 'staff'),
-        ('GENERAL', 'general')
+        ('Admin', 'Admin'),
+        ('Staff', 'Staff'),
+        ('General', 'General')
     )
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
