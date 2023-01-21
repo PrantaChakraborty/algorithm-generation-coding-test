@@ -137,3 +137,18 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not re.fullmatch(PASSWORD_REGEX, confirm_password):
             raise CustomSerializerValidationError("Confirm Password contain minimum 8 Alphanumeric characters!")
         return attrs
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    serializer to view user data
+    """
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name']
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.save()
+        return instance
