@@ -7,7 +7,7 @@ from rest_framework.exceptions import APIException
 logger = logging.getLogger(__name__)
 
 
-class CustomSerializerValidationError(APIException):
+class BaseCustomException(APIException):
     error = None
 
     def __init__(self, error_message):
@@ -15,10 +15,16 @@ class CustomSerializerValidationError(APIException):
         self.error = error_message
 
 
-# class CustomSerializerValidationError(BaseCustomException):
-#
-#     def __init__(self, err_msg):
-#         super().__init__(err_msg)
+class CustomSerializerValidationError(BaseCustomException):
+
+    def __init__(self, err_msg):
+        super().__init__(err_msg)
+
+
+class CustomAPIError(BaseCustomException):
+
+    def __init__(self, err_msg):
+        super().__init__(err_msg)
 
 
 def custom_exception_handler(exc, context):
