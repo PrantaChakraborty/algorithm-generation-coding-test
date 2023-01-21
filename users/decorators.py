@@ -9,40 +9,33 @@ logger = logging.getLogger(__name__)
 
 
 def user_permission_check(action_name):
+    """
+    custom decorator to check user is allowed to perform operation or not
+    :param action_name:
+    :return: bool
+    """
     def permission_check(func):
-        """
-        custom decorator to check user is allowed to perform operation or not
-        :param func:
-        :return:
-        """
-
         def wrapper(request, *args, **kwargs):
 
             auth_header = get_authorization_header(request).split()
-            token = auth_header[1]
             try:
-                token_obj = CustomToken.objects.select_related('user').get(key__exact=token.decode())
-                user = token_obj.user
+                token = auth_header[1]
+                try:
+                    token_obj = CustomToken.objects.select_related('user').get(key__exact=token.decode())
+                    user = token_obj.user
 
+                except Exception:
+                    raise CustomAPIError("User does not exists")
             except Exception:
-                raise CustomAPIError("User does not exists")
-            if action_name == 'view':
-                if not user.has_perm('user.can_view_user'):
-                    logger.info('executed')
-                    raise CustomAPIError("User has no permission to view user list.")
-            elif action_name == 'change':
-                if not user.has_perm('user.can_change_user'):
-                    logger.info('executed')
-                    raise CustomAPIError("User has no permission to edit user.")
-            elif action_name == 'add':
-                if not user.has_perm('user.can_add_user'):
-                    logger.info('executed')
-                    raise CustomAPIError("User has no permission to add user.")
-            elif action_name == 'delete':
-                if not user.has_perm('user.can_delete_user'):
-                    logger.info('executed')
-                    raise CustomAPIError("User has no permission to delete user.")
-
+                raise CustomAPIError("No token provided")
+            if action_name == 'view' and not user.has_perm('user.can_view_user'):
+                raise CustomAPIError("User has no permission to view user list.")
+            elif action_name == 'change' and not user.has_perm('user.can_change_user'):
+                raise CustomAPIError("User has no permission to edit user.")
+            elif action_name == 'add' and not user.has_perm('user.can_add_user'):
+                raise CustomAPIError("User has no permission to add user.")
+            elif action_name == 'delete' and not user.has_perm('user.can_delete_user'):
+                raise CustomAPIError("User has no permission to delete user.")
             return func(request, *args, **kwargs)
 
         return wrapper
