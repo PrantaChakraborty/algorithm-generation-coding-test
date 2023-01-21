@@ -102,3 +102,38 @@ class UserLoginSerializer(serializers.Serializer):
         if not user.is_active:
             raise CustomSerializerValidationError("Account is not active.")
         return user
+
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    """
+    serializer to request password reset
+    """
+    email = serializers.CharField(max_length=250, write_only=True, required=True)
+
+    def validate(self, attrs):
+        email = attrs.get('email', "")
+        email_qs = User.objects.filter(Q(email=email))
+        if not email_qs.exists():
+            raise CustomSerializerValidationError("User does not exists with this email.")
+        return attrs
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    """
+    for password change serializer
+    """
+    password = serializers.CharField(max_length=30, required=True, write_only=True)
+    confirm_password = serializers.CharField(max_length=30, required=True, write_only=True)
+
+    def validate(self, attrs):
+        password = attrs.get("password", "")
+        confirm_password = attrs.get("confirm_password", "")
+        if password != confirm_password:
+            raise CustomSerializerValidationError("Passwords didn't match.")
+        if len(password) < 8 or len(confirm_password) < 8:
+            raise CustomSerializerValidationError("Password length should be 8")
+        if not re.fullmatch(PASSWORD_REGEX, password):
+            raise CustomSerializerValidationError("Password contain minimum 8 Alphanumeric characters!")
+        if not re.fullmatch(PASSWORD_REGEX, confirm_password):
+            raise CustomSerializerValidationError("Confirm Password contain minimum 8 Alphanumeric characters!")
+        return attrs
