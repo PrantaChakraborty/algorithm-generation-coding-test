@@ -89,7 +89,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             return None
 
 
-
 class CustomToken(models.Model):
     """
     The custom authorization token model.
