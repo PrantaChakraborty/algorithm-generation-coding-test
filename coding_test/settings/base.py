@@ -163,3 +163,8 @@ LOGGING = {
         },
     },
 }
+
+PASSWORD_RESET_TIMEOUT = 300  # password reset url will be valid for 5 minutes
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
