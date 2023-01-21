@@ -1,3 +1,4 @@
+import re
 from rest_framework.authentication import get_authorization_header
 from django.http import JsonResponse
 
@@ -14,14 +15,14 @@ class TokenValidationMiddleware:
         # One-time configuration and initialization.
 
     def __call__(self, request):
-        # Code to be executed for each request before
-        # the view (and later middleware) are called.
-        protected_path = ['/api/v1/users/', f"/api/v1/users/{int}/"]
+        # to match /api/v1/users/ or /api/v1/users/4/
+        url_pattern = re.compile(r'^/api/v1/users/(\d+)?/?$')
+
         auth_header = get_authorization_header(request).split()
         path = request.get_full_path()
-        if path in protected_path:
+        if url_pattern.search(path):
             if not auth_header:
-                return JsonResponse({"success": False, "error": "Token not provided"})
+                return JsonResponse({"success": False, "error": "Authorization Token not provided"})
 
             if auth_header[0].lower() != b'token':
                 return JsonResponse({"success": False, "error": "Invalid token header"})
