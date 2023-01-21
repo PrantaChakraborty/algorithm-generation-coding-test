@@ -54,10 +54,11 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'users.middlewares.CustomAuthenticationMiddleware.TokenValidationMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middlewares.CustomAuthenticationMiddleware.TokenValidationMiddleware',
+
 ]
 
 ROOT_URLCONF = 'coding_test.urls'
