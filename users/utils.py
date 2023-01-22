@@ -1,5 +1,4 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-
 from rest_framework import authentication
 from rest_framework import exceptions
 
@@ -30,6 +29,7 @@ class TokenAuthentication(authentication.BaseAuthentication):
         try:
             custom_token_obj = CustomToken.objects.get(key__exact=token)
             user = custom_token_obj.user
-        except User.DoesNotExist:
-            raise exceptions.AuthenticationFailed('Invalid token')
+        except Exception:
+            raise exceptions.AuthenticationFailed('Invalid token or User not exists')
         return user, None
+
