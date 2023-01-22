@@ -14,6 +14,7 @@ def user_permission_check(action_name):
     :param action_name:
     :return: bool
     """
+
     def permission_check(func):
         def wrapper(request, *args, **kwargs):
 
@@ -28,13 +29,17 @@ def user_permission_check(action_name):
                     raise CustomAPIError("User does not exists")
             except Exception:
                 raise CustomAPIError("No token provided")
-            if action_name == 'view' and not user.has_perm('user.can_view_user'):
+            if action_name == 'view' and not (user.has_perm('users.view_user') or
+                                              user.has_perm('users.can_view_user_first_name') or
+                                              user.has_perm('users.can_view_user_last_name')):
                 raise CustomAPIError("User has no permission to view user list.")
-            elif action_name == 'change' and not user.has_perm('user.can_change_user'):
+            elif action_name == 'change' and not (user.has_perm('users.change_user') or
+                                                  user.has_perm('users.can_change_user_first_name') or
+                                                  user.has_perm('users.can_change_user_last_name')):
                 raise CustomAPIError("User has no permission to edit user.")
-            elif action_name == 'add' and not user.has_perm('user.can_add_user'):
+            elif action_name == 'add' and not user.has_perm('users.add_user'):
                 raise CustomAPIError("User has no permission to add user.")
-            elif action_name == 'delete' and not user.has_perm('user.can_delete_user'):
+            elif action_name == 'delete' and not user.has_perm('users.delete_user'):
                 raise CustomAPIError("User has no permission to delete user.")
             return func(request, *args, **kwargs)
 
