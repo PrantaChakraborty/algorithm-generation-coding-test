@@ -128,11 +128,15 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-    'EXCEPTION_HANDLER': 'users.exception_handler.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'users.exception_handler.custom_exception_handler',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.utils.TokenAuthentication'
+    ]
 }
 
 # custom user model
 AUTH_USER_MODEL = 'users.User'
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 
 # setting for logging
 LOGGING = {
