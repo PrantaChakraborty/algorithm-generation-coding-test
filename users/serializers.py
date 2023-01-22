@@ -1,13 +1,14 @@
 import re
 from django.db.models import Q
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 from rest_framework import serializers
 
 from .models import User, CustomToken
 
 from .exception_handler import CustomSerializerValidationError
-
 
 import logging
 
@@ -143,12 +144,103 @@ class UserSerializer(serializers.ModelSerializer):
     """
     serializer to view user data
     """
+
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name']
 
     def update(self, instance, validated_data):
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
+        user = self.context['request'].user
+        f_name = validated_data.get('first_name')
+        l_name = validated_data.get('last_name')
+        logger.info(f"f {f_name} l {l_name}")
+        if f_name is not None:
+            if user.has_perm('users.can_change') or user.has_perm('users.can_change_user_first_name'):
+                instance.first_name = validated_data.get('first_name', instance.first_name)
+            else:
+                raise CustomSerializerValidationError("You don't have permission to change first name.")
+        if l_name is not None:
+            if user.has_perm('users.can_change') or user.has_perm('users.can_change_user_last_name'):
+                instance.last_name = validated_data.get('last_name', instance.last_name)
+            else:
+                raise CustomSerializerValidationError("You don't have permission to change last name.")
         instance.save()
         return instance
+
+
+PERMISSION_NAME = ['add', 'view', 'change', 'delete']
+COLUMN_NAME = ['first_name', 'last_name']
+
+
+class StaffPermissionSerializer(serializers.Serializer):
+    """
+    serializer for admin to add/remove/change staff permission for user table data based on column name
+    """
+    staff_user_id = serializers.IntegerField(required=True)
+    permission_name = serializers.CharField(max_length=250, required=False)
+    column_name = serializers.CharField(max_length=250, required=False)
+
+    def validate(self, attrs):
+        permission_name = attrs.get('permission_name', '')
+        column_name = attrs.get('column_name', '')
+        staff_user_id = attrs.get('staff_user_id')
+        if permission_name:
+            if permission_name not in PERMISSION_NAME:
+                raise CustomSerializerValidationError(f'Permission name must be one from {PERMISSION_NAME}')
+        if column_name:
+            if column_name not in COLUMN_NAME:
+                raise CustomSerializerValidationError(f'User Column name must be one from {COLUMN_NAME}')
+        try:
+            user = User.objects.get(id=int(staff_user_id))
+            if user.user_type != 'Staff':
+                raise CustomSerializerValidationError('User role is not staff')
+        except User.DoesNotExist:
+            raise CustomSerializerValidationError("User does not exists")
+
+        return attrs
+
+    def save(self, **kwargs):
+        staff_user_id = self.validated_data.get('staff_user_id')
+        permission_name = self.validated_data.get('permission_name')
+        column_name = self.validated_data.get('column_name')
+
+        staff_user = User.objects.get(id=int(staff_user_id))
+        content_type = ContentType.objects.get(app_label='users', model='user')
+        if permission_name:
+            """
+            for column based permission if not column name provided then permission 
+            will be given for CRUD first_name, last_name based on permission_name 
+            """
+            if column_name:
+                permission_obj, created = Permission.objects.get_or_create(
+                    codename=f'can_{permission_name}_user_{column_name}', content_type=content_type,
+                    name=f'Can {permission_name} user {column_name}')
+
+                if not staff_user.has_perm(permission_obj.codename):
+                    staff_user.user_permissions.add(permission_obj)
+            else:
+
+                first_name_permission_obj, created = Permission.objects.get_or_create(
+                    codename=f'can_{permission_name}_user_first_name', content_type=content_type,
+                    name=f'Can {permission_name} user first_name')
+                last_name_permission_obj, created = Permission.objects.get_or_create(
+                    codename=f'can_{permission_name}_user_last_name', content_type=content_type,
+                    name=f'Can {permission_name} user last_name')
+                if not staff_user.has_perm(first_name_permission_obj.codename):
+                    staff_user.user_permissions.add(first_name_permission_obj)
+                if not staff_user.has_perm(last_name_permission_obj.codename):
+                    staff_user.user_permissions.add(last_name_permission_obj)
+        else:
+            """
+            if permission_name is not provided then staff user will be allowed to do all kinds of action in user table
+            """
+            for p_name in PERMISSION_NAME:
+                permission_obj, created = Permission.objects.get_or_create(
+                    codename=f'{p_name}_user', content_type=content_type,
+                    name=f'Can {p_name} user')
+                if not staff_user.has_perm(f'users.{p_name}_user'):
+                    staff_user.user_permissions.add(permission_obj)
+                else:
+                    logger.info('permission already given')
+
+        return None

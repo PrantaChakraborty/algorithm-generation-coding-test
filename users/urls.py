@@ -7,7 +7,8 @@ from .views import (
     UserLoginAPIView,
     RequestPasswordResetAPIView,
     PasswordResetConfirmAPIView,
-    UserAPIViewSet
+    UserAPIViewSet,
+    StaffPermissionAPIView
 )
 
 router = DefaultRouter()
@@ -20,4 +21,5 @@ urlpatterns = [
     path('password-reset-request/', RequestPasswordResetAPIView.as_view()),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmAPIView.as_view(),
          name='password-reset-confirm'),
+    path('permission/', StaffPermissionAPIView.as_view())
 ] + router.urls

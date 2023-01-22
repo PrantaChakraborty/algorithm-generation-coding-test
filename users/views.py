@@ -17,13 +17,15 @@ from .serializers import (
     UserLoginSerializer,
     RequestPasswordResetSerializer,
     PasswordChangeSerializer,
-    UserSerializer
+    UserSerializer,
+    StaffPermissionSerializer
 )
 
 from .models import User
 from .utils import FiveMinuteTokenGenerator
 from .exception_handler import CustomAPIError
 from .decorators import user_permission_check
+from .permissions import IsAdmin
 
 import logging
 
@@ -137,6 +139,9 @@ class RequestPasswordResetAPIView(GenericAPIView):
 
 
 class PasswordResetConfirmAPIView(GenericAPIView):
+    """
+    api to reset password
+    """
     serializer_class = PasswordChangeSerializer
     authentication_classes = []
 
@@ -194,13 +199,23 @@ class UserAPIViewSet(ModelViewSet):
         param: last_name
     """
     http_method_names = ['get', 'post', 'patch', 'delete']
-    queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'create':
             return UserRegisterSerializer
         return UserSerializer
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+        user = self.request.user
+        if user.has_perm('users.view_user'):
+            return queryset
+        elif user.has_perm('users.can_view_user_first_name'):
+            return User.objects.values('first_name')
+        elif user.has_perm('users.can_view_user_last_name'):
+            logger.info('last name')
+            return User.objects.all().values('last_name')
 
     @method_decorator(user_permission_check(action_name='view'))
     def list(self, request, *args, **kwargs):
@@ -238,7 +253,21 @@ class UserAPIViewSet(ModelViewSet):
         return Response({"success": True, "data": data}, status=status.HTTP_204_NO_CONTENT)
 
 
+class StaffPermissionAPIView(GenericAPIView):
+    """
+    api view for admin to apply permission for staff user
+    to add/view/change/delete
+    URL: api/v1/users/permission/
+    """
+    serializer_class = StaffPermissionSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            data = {"message": "Permission granted."}
+            return Response({"success": True, "data": data}, status=status.HTTP_200_OK)
 
 
 
