@@ -9,7 +9,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.viewsets import ModelViewSet
 
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 
 from .serializers import (
     UserRegisterSerializer,
@@ -44,6 +44,7 @@ class UserRegisterAPIView(GenericAPIView):
     }
     """
     serializer_class = UserRegisterSerializer
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -68,6 +69,7 @@ class StaffRegisterAPIView(UserRegisterAPIView):
         }
         """
     serializer_class = StaffRegisterSerializer
+    authentication_classes = []
 
 
 class UserLoginAPIView(GenericAPIView):
@@ -87,6 +89,7 @@ class UserLoginAPIView(GenericAPIView):
         }
         """
     serializer_class = UserLoginSerializer
+    authentication_classes = []
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -107,6 +110,7 @@ class RequestPasswordResetAPIView(GenericAPIView):
     """
 
     serializer_class = RequestPasswordResetSerializer
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -134,6 +138,7 @@ class RequestPasswordResetAPIView(GenericAPIView):
 
 class PasswordResetConfirmAPIView(GenericAPIView):
     serializer_class = PasswordChangeSerializer
+    authentication_classes = []
 
     def get(self, request, *args, **kwargs):
         uidb64 = kwargs['uidb64']
@@ -190,6 +195,7 @@ class UserAPIViewSet(ModelViewSet):
     """
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'create':
