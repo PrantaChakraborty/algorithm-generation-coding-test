@@ -11,37 +11,37 @@ An authentication api task for Algorithm Generation
    https://github.com/PrantaChakraborty/algorithm-generation-coding-test.git
 2. Create database.
 
-   3. After clone the repository follow the steps 
-      ```bash
-         # goto the project folder
-         cd algorithm-generation-coding-test
+3. After clone the repository follow the steps 
+   ```bash
+      # goto the project folder
+      cd algorithm-generation-coding-test
    
-         # create an .env file and copy all from env.example to .env
-         touch .env
-         cp env.example .env
+      # create an .env file and copy all from env.example to .env
+      touch .env
+      cp env.example .env
    
-         # change the database settings with newly created database & credentials 
+      # change the database settings with newly created database & credentials on the .env file
       
    
-         # create a virtual environment
-         virturalenv venv
+      # create a virtual environment
+      virturalenv venv
       
-         # active the virtual environment
-         source vevn/bin/activate
+      # active the virtual environment
+      source vevn/bin/activate
    
-         # make migrations & migrate
-         python mange.py makemigrations
-         python manage.py migrate
+      # make migrations & migrate
+      python mange.py makemigrations
+      python manage.py migrate
    
-         # create a superuser
-         python manage.py createsuperuser
+      # create a superuser
+      python manage.py createsuperuser
       
-         # after creating superuser run the development server
-         python manage.py runserver
+      # after creating superuser run the development server
+      python manage.py runserver
    
    
       
       
-      ```
+   ```
 
 API postman collection are in this link https://documenter.getpostman.com/view/13941423/2s8ZDa11hR
